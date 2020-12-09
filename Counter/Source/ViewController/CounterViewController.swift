@@ -22,7 +22,7 @@ class CounterViewController: UIViewController {
     
     private lazy var label: UILabel = {
         let view = UILabel()
-        view.font = .systemFont(ofSize: 100, weight: .ultraLight)
+        view.font = .monospacedDigitSystemFont(ofSize: 100, weight: .ultraLight)
         view.adjustsFontSizeToFitWidth = true
         view.numberOfLines = 2
         view.textAlignment = .center
