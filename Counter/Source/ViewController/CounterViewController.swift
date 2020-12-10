@@ -6,10 +6,22 @@
 //
 
 import UIKit
+import AudioToolbox
 
 let countValueUserDefaultsKey = "com.monzy.zhang.Counter.countValue"
 
 class CounterViewController: UIViewController {
+    
+    private var countdown: Int = 0 {
+        didSet {
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+            currentCountdown = countdown
+            countdownLabel.text = countdown == 0 ? "" : "\(countdown)"
+        }
+    }
+    private var currentCountdown: Int = 0
+    private var countdownTimer: Timer?
     
     private lazy var count: Int = UserDefaults.standard.integer(forKey: countValueUserDefaultsKey) {
         didSet {
@@ -36,8 +48,30 @@ class CounterViewController: UIViewController {
         view.backgroundColor = Color.plus
         view.setImage(UIImage(named: "plus"), for: .normal)
         view.onTap = { [weak self] in
-            self?.impactOccurred(.medium)
-            self?.count += 1
+            guard let self = self else { return }
+            self.impactOccurred(.medium)
+            self.count += 1
+            self.countdownTimer?.invalidate()
+            self.countdownTimer = nil
+            if self.countdown > 0 {
+                self.currentCountdown = self.countdown
+                self.countdownLabel.text = "\(self.currentCountdown)"
+                self.countdownTimer = Timer.scheduledTimer(
+                    withTimeInterval: 1,
+                    repeats: true
+                ) { _ in
+                    if self.currentCountdown > 1 {
+                        self.currentCountdown -= 1
+                    } else {
+                        // complete countdown
+                        AudioServicesPlaySystemSound(1304)
+                        self.currentCountdown = 0
+                        self.countdownTimer?.invalidate()
+                        self.countdownTimer = nil
+                    }
+                    self.countdownLabel.text = "\(self.currentCountdown)"
+                }
+            }
         }
         return view
     }()
@@ -66,7 +100,11 @@ class CounterViewController: UIViewController {
         let view = UIButton(type: .system)
         view.isEnabled = count != 0
         view.tintColor = Color.backgroundInvertion
-        view.setImage(UIImage(named: "reset"), for: .normal)
+        let img = UIImage(
+            systemName: "arrow.clockwise",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .light)
+        )
+        view.setImage(img, for: .normal)
         view.showsMenuAsPrimaryAction = true
         view.menu = UIMenu(
             options: [ .displayInline ],
@@ -86,6 +124,32 @@ class CounterViewController: UIViewController {
             },
             for: .menuActionTriggered
         )
+        return view
+    }()
+    
+    private lazy var countdownButton: UIButton = {
+        let view = UIButton(type: .system)
+        view.tintColor = Color.backgroundInvertion
+        let img = UIImage(
+            systemName: "clock.arrow.circlepath",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .light)
+        )
+        view.setImage(img, for: .normal)
+        view.addTarget(
+            self,
+            action: #selector(countdownButtonPressed),
+            for: .touchUpInside
+        )
+        return view
+    }()
+    
+    private lazy var countdownLabel: UILabel = {
+        let view = UILabel()
+        view.font = .monospacedDigitSystemFont(ofSize: 40, weight: .ultraLight)
+        view.adjustsFontSizeToFitWidth = true
+        view.numberOfLines = 1
+        view.textAlignment = .center
+        view.textColor = Color.backgroundInvertion
         return view
     }()
     
@@ -111,6 +175,8 @@ extension CounterViewController {
         view.backgroundColor = Color.background
         [
             label,
+            countdownButton,
+            countdownLabel,
             resetButton,
             plusButton,
             minusButtonBackgroundView,
@@ -125,7 +191,13 @@ extension CounterViewController {
             label.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor, constant: 15),
             label.bottomAnchor.constraint(equalTo: plusButton.topAnchor, constant: -15),
             
-            resetButton.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -15),
+            countdownButton.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor, constant: -15),
+            countdownButton.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 30),
+            
+            countdownLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            countdownLabel.centerYAnchor.constraint(equalTo: countdownButton.centerYAnchor),
+            
+            resetButton.centerYAnchor.constraint(equalTo: countdownButton.centerYAnchor),
             resetButton.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -30),
             
             plusButton.heightAnchor.constraint(equalTo: plusButton.widthAnchor),
@@ -151,6 +223,25 @@ extension CounterViewController {
         generator.impactOccurred()
     }
     
+    @objc private func countdownButtonPressed() {
+        impactOccurred(.light)
+        let alert = UIAlertController(
+            title: "",
+            message: "input count down duration",
+            preferredStyle: .alert
+        )
+        alert.addTextField {
+            $0.placeholder = "count down time (in seconds)"
+            $0.keyboardType = .numberPad
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Confirm", style: .default) { [weak alert, self] _ in
+            guard let text = alert?.textFields?.first?.text, !text.isEmpty else { return }
+            guard let seconds = Int(text), seconds > 0 else { return }
+            self.countdown = seconds
+        })
+        present(alert, animated: true)
+    }
 }
 
 extension CounterViewController {
