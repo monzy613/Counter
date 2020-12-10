@@ -1,0 +1,13 @@
+/* 
+  Localizable.strings
+  Counter
+
+  Created by Monzy Zhang on 2020/12/10.
+  
+*/
+
+"reset" = "重置";
+"cancel" = "取消";
+"confirm" = "确认";
+"countdownMessage" = "输入组歇时间";
+"countdownPlaceholder" = "秒";

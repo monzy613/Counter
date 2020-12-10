@@ -29,6 +29,9 @@ class CounterViewController: UIViewController {
             resetButton.isEnabled = count != 0
             label.text = "\(count)"
             UserDefaults.standard.setValue(count, forKey: countValueUserDefaultsKey)
+            if count == 0 {
+                countdown = 0
+            }
         }
     }
     
@@ -71,9 +74,9 @@ class CounterViewController: UIViewController {
                     } else {
                         // complete countdown
                         AudioServicesPlaySystemSound(1304)
-                        self.currentCountdown = 0
                         self.countdownTimer?.invalidate()
                         self.countdownTimer = nil
+                        self.currentCountdown = 0
                     }
                     self.countdownLabel.text = "\(self.currentCountdown)"
                 }
@@ -121,11 +124,11 @@ class CounterViewController: UIViewController {
         view.menu = UIMenu(
             options: [ .displayInline ],
             children: [
-                UIAction(title: "Reset", attributes: .destructive, handler: { [weak self] _ in
+                UIAction(title: "reset".localized, attributes: .destructive, handler: { [weak self] _ in
                     self?.impactOccurred(.medium)
                     self?.count = 0
                 }),
-                UIAction(title: "Cancel", handler: { [weak self] _ in
+                UIAction(title: "cancel".localized, handler: { [weak self] _ in
                     self?.impactOccurred(.medium)
                 }),
             ]
@@ -164,6 +167,10 @@ class CounterViewController: UIViewController {
         view.textColor = Color.backgroundInvertion
         return view
     }()
+    
+    deinit {
+        countdownTimer?.invalidate()
+    }
     
     init() {
         super.init(nibName: nil, bundle: nil)
@@ -239,15 +246,15 @@ extension CounterViewController {
         impactOccurred(.light)
         let alert = UIAlertController(
             title: "",
-            message: "input count down duration",
+            message: "countdownMessage".localized,
             preferredStyle: .alert
         )
         alert.addTextField {
-            $0.placeholder = "count down time (in seconds)"
+            $0.placeholder = "countdownPlaceholder".localized
             $0.keyboardType = .numberPad
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Confirm", style: .default) { [weak alert, self] _ in
+        alert.addAction(UIAlertAction(title: "cancel".localized, style: .cancel))
+        alert.addAction(UIAlertAction(title: "confirm".localized, style: .default) { [weak alert, self] _ in
             guard let text = alert?.textFields?.first?.text, !text.isEmpty else { return }
             guard let seconds = Int(text), seconds > 0 else { return }
             self.countdown = seconds

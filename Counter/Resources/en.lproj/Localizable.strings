@@ -1,0 +1,13 @@
+/* 
+  Localizable.strings
+  Counter
+
+  Created by Monzy Zhang on 2020/12/10.
+  
+*/
+
+"reset" = "Reset";
+"cancel" = "Cancel";
+"confirm" = "Confirm";
+"countdownMessage" = "input rest duration";
+"countdownPlaceholder" = "duration in seconds";
