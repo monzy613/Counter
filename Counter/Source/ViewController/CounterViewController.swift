@@ -46,7 +46,13 @@ class CounterViewController: UIViewController {
     private lazy var plusButton: OvalButton = {
         let view = OvalButton(type: .system)
         view.backgroundColor = Color.plus
-        view.setImage(UIImage(named: "plus"), for: .normal)
+        view.setImage(
+            UIImage(
+                systemName: "plus",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 50, weight: .thin)
+            ),
+            for: .normal
+        )
         view.onTap = { [weak self] in
             guard let self = self else { return }
             self.impactOccurred(.medium)
@@ -86,7 +92,13 @@ class CounterViewController: UIViewController {
         let view = OvalButton(type: .system)
         view.isEnabled = count != 0
         view.backgroundColor = Color.red
-        view.setImage(UIImage(named: "minus"), for: .normal)
+        view.setImage(
+            UIImage(
+                systemName: "minus",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 40, weight: .thin)
+            ),
+            for: .normal
+        )
         view.onTap = { [weak self] in
             guard let self = self else { return }
             guard self.count - 1 >= 0 else { return }
